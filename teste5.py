@@ -1,2 +1,5 @@
 print("Olá!")
 print("SiM!")
+print("Tudo bem?")  
+print("Tudo ótimo!")
+print("Que bom!")   
