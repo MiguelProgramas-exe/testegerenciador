@@ -13,5 +13,10 @@
         "nome": "luis",
         "email": "luis@gmail.com",
         "perfil": "adm"
+    },
+    {
+        "nome": "jones manoel",
+        "email": "jonesmanoel@gmail.com",
+        "perfil": "pai de todos"
     }
 ]
