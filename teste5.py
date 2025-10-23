@@ -1,8 +1,7 @@
-print("Olá!")
-print("SiM!")
-print("Tudo bem?")  
-print("Tudo ótimo!")
-print("Que bom!")   
-print("Oi")
-print("boatarde")
-print("fds")
+import storage
+import model.py
+import services.py
+import reports.py
+import ui.py
+import utils.py
+import main.py
