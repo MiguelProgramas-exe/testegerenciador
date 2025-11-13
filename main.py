@@ -154,9 +154,9 @@ while True:
     # 0️ Sair e salvar
     # ---------------------------
     elif opcao == 0:
-        print("💾 Salvando e encerrando...")
+        print(" Salvando e encerrando...")
         salvar_usuarios(lista)
-        print("✅ Dados salvos com sucesso! Até logo.")
+        print(" Dados salvos com sucesso! Até logo.")
         break
 
     # ---------------------------
