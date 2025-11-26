@@ -33,6 +33,7 @@ def menu():
         print("[10] Listar tarefas")
         print("[11] Atualizar tarefa")
         print("[12] Remover tarefa")
+        print("[13] Relatórios")
         print("[0] Sair")
 
         opcao = input("Escolha uma opção: ").strip()
@@ -179,6 +180,19 @@ def menu():
                 print("✅ Removido:", t)
             else:
                 print("❌ Tarefa não encontrada")
+        elif opcao == "13":
+            print("\n=== MENU DE RELATÓRIOS ===")
+            print("[1] Usuários")
+            print("[2] Projetos")
+            print("[3] Tarefas")
+            print("[4] Completo")
+            sub = input("Escolha: ")
+
+            if sub == "1": services.relatorio_usuarios()
+            elif sub == "2": services.relatorio_projetos()
+            elif sub == "3": services.relatorio_tarefas()
+            elif sub == "4": services.relatorio_completo()
+            else: print("Opção inválida.")
 
         # ---------------- SAIR ----------------
 
