@@ -1,30 +1,22 @@
 from datetime import datetime
 
-# Usuários
+# Criação de registros com validação simples
 def criar_usuario(id, nome, email, perfil):
-    if not nome.strip():
-        raise ValueError("Nome não pode ser vazio")
-    if "@" not in email:
-        raise ValueError("E-mail inválido")
+    if not nome or not email:
+        raise ValueError("Nome e email são obrigatórios")
     return {"id": id, "nome": nome, "email": email, "perfil": perfil}
 
-# Projetos
 def criar_projeto(id, nome, descricao, inicio, fim):
-    if not nome.strip():
-        raise ValueError("Nome do projeto não pode ser vazio")
-    data_inicio = datetime.strptime(inicio, "%Y-%m-%d")
-    data_fim = datetime.strptime(fim, "%Y-%m-%d")
-    if data_inicio > data_fim:
-        raise ValueError("Data de início não pode ser maior que data de fim")
+    if not nome:
+        raise ValueError("Nome do projeto é obrigatório")
+    if datetime.strptime(fim, "%Y-%m-%d") < datetime.strptime(inicio, "%Y-%m-%d"):
+        raise ValueError("Data fim não pode ser anterior à data início")
     return {"id": id, "nome": nome, "descricao": descricao, "inicio": inicio, "fim": fim}
 
-# Tarefas
 def criar_tarefa(id, titulo, projeto_id, responsavel_id, status, prazo):
-    if not titulo.strip():
-        raise ValueError("Título não pode ser vazio")
+    status = status.lower()
     if status not in ["pendente", "andamento", "concluída"]:
         raise ValueError("Status inválido")
-    datetime.strptime(prazo, "%Y-%m-%d")  # valida formato
     return {
         "id": id,
         "titulo": titulo,
