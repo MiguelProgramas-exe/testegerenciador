@@ -1,5 +1,6 @@
 from users import gerenciador_usuarios
 from projetos import gerenciador_projetos
+from tarefas import gerenciador_tarefas
 while True:
     print("\n=== GERENCIADOR ===")
     print("[1] Usuários")
@@ -20,12 +21,10 @@ while True:
 
 
     elif opcao == 3:
-        
+        gerenciador_tarefas()
 
-    elif opcao == 0:
-        print(" Salvando e encerrando...")
-        salvar_usuarios(lista)
-        print(" Dados salvos com sucesso! Até logo.")
+    elif(opcao==0):
+        print(" Encerrando...")
         break
     else:
         print("Opção inválida, tente novamente!")

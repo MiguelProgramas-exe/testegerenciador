@@ -1,12 +1,7 @@
 [
     {
-        "nome": "Pedro",
-        "email": "pedro@gmail.com",
-        "perfil": "ADM"
-    },
-    {
         "nome": "joao",
         "email": "joao@gmail.com",
-        "perfil": "user"
+        "perfil": "ADN"
     }
 ]
