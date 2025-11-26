@@ -1,6 +1,7 @@
 import services
 from datetime import datetime
 
+
 def validar_data(data_str):
     try:
         datetime.strptime(data_str, "%Y-%m-%d")
@@ -8,12 +9,14 @@ def validar_data(data_str):
     except ValueError:
         return False
 
+
 def input_data(prompt):
     while True:
         data = input(prompt).strip()
         if validar_data(data):
             return data
         print("❌ Formato inválido! Use YYYY-MM-DD.")
+
 
 def menu():
     while True:
@@ -34,6 +37,8 @@ def menu():
 
         opcao = input("Escolha uma opção: ").strip()
 
+        # ---------------- USUÁRIOS ----------------
+
         if opcao == "1":
             try:
                 id = input("ID do usuário: ").strip()
@@ -47,7 +52,12 @@ def menu():
 
         elif opcao == "2":
             usuarios = services.listar_usuarios()
-            for u in usuarios: print(u) if usuarios else print("Nenhum usuário cadastrado.")
+            print("\n--- Usuários ---")
+            if usuarios:
+                for u in usuarios:
+                    print(u)
+            else:
+                print("Nenhum usuário cadastrado.")
 
         elif opcao == "3":
             email = input("Email do usuário a atualizar: ").strip()
@@ -55,12 +65,20 @@ def menu():
             novo_email = input("Novo email (vazio para manter): ").strip()
             novo_perfil = input("Novo perfil (vazio para manter): ").strip()
             u = services.atualizar_usuario(email, novo_nome, novo_email, novo_perfil)
-            print("✅ Atualizado:", u) if u else print("❌ Usuário não encontrado")
+            if u:
+                print("✅ Atualizado:", u)
+            else:
+                print("❌ Usuário não encontrado")
 
         elif opcao == "4":
             email = input("Email do usuário a remover: ").strip()
             u = services.remover_usuario(email)
-            print("✅ Removido:", u) if u else print("❌ Usuário não encontrado")
+            if u:
+                print("✅ Removido:", u)
+            else:
+                print("❌ Usuário não encontrado")
+
+        # ---------------- PROJETOS ----------------
 
         elif opcao == "5":
             try:
@@ -76,7 +94,12 @@ def menu():
 
         elif opcao == "6":
             projetos = services.listar_projetos()
-            for p in projetos: print(p) if projetos else print("Nenhum projeto cadastrado.")
+            print("\n--- Projetos ---")
+            if projetos:
+                for p in projetos:
+                    print(p)
+            else:
+                print("Nenhum projeto cadastrado.")
 
         elif opcao == "7":
             nome = input("Nome do projeto a atualizar: ").strip()
@@ -84,15 +107,29 @@ def menu():
             nova_desc = input("Nova descrição (vazio para manter): ").strip()
             novo_inicio = input("Nova data início YYYY-MM-DD (vazio para manter): ").strip()
             novo_fim = input("Nova data fim YYYY-MM-DD (vazio para manter): ").strip()
-            p = services.atualizar_projeto(nome, novo_nome, nova_desc,
-                                           novo_inicio if validar_data(novo_inicio) else None,
-                                           novo_fim if validar_data(novo_fim) else None)
-            print("✅ Atualizado:", p) if p else print("❌ Projeto não encontrado")
+
+            p = services.atualizar_projeto(
+                nome,
+                novo_nome,
+                nova_desc,
+                novo_inicio if validar_data(novo_inicio) else None,
+                novo_fim if validar_data(novo_fim) else None
+            )
+
+            if p:
+                print("✅ Atualizado:", p)
+            else:
+                print("❌ Projeto não encontrado")
 
         elif opcao == "8":
             nome = input("Nome do projeto a remover: ").strip()
             p = services.remover_projeto(nome)
-            print("✅ Removido:", p) if p else print("❌ Projeto não encontrado")
+            if p:
+                print("✅ Removido:", p)
+            else:
+                print("❌ Projeto não encontrado")
+
+        # ---------------- TAREFAS ----------------
 
         elif opcao == "9":
             try:
@@ -102,6 +139,7 @@ def menu():
                 responsavel_id = input("ID usuário: ").strip()
                 status = input("Status (pendente/andamento/concluída): ").strip().lower()
                 prazo = input_data("Prazo YYYY-MM-DD: ")
+
                 t = services.cadastrar_tarefa(id, titulo, projeto_id, responsavel_id, status, prazo)
                 print("✅ Tarefa cadastrada:", t)
             except ValueError as e:
@@ -109,23 +147,40 @@ def menu():
 
         elif opcao == "10":
             tarefas = services.listar_tarefas()
-            for t in tarefas: print(t) if tarefas else print("Nenhuma tarefa cadastrada.")
+            print("\n--- Tarefas ---")
+            if tarefas:
+                for t in tarefas:
+                    print(t)
+            else:
+                print("Nenhuma tarefa cadastrada.")
 
         elif opcao == "11":
             id = input("ID da tarefa a atualizar: ").strip()
             novo_titulo = input("Novo título (vazio para manter): ").strip()
             novo_status = input("Novo status (vazio para manter): ").strip()
             novo_prazo = input("Novo prazo YYYY-MM-DD (vazio para manter): ").strip()
-            t = services.atualizar_tarefa(id,
-                                          novo_titulo,
-                                          novo_status,
-                                          novo_prazo if validar_data(novo_prazo) else None)
-            print("✅ Atualizado:", t) if t else print("❌ Tarefa não encontrada")
+
+            t = services.atualizar_tarefa(
+                id,
+                novo_titulo,
+                novo_status,
+                novo_prazo if validar_data(novo_prazo) else None
+            )
+
+            if t:
+                print("✅ Atualizado:", t)
+            else:
+                print("❌ Tarefa não encontrada")
 
         elif opcao == "12":
             id = input("ID da tarefa a remover: ").strip()
             t = services.remover_tarefa(id)
-            print("✅ Removido:", t) if t else print("❌ Tarefa não encontrada")
+            if t:
+                print("✅ Removido:", t)
+            else:
+                print("❌ Tarefa não encontrada")
+
+        # ---------------- SAIR ----------------
 
         elif opcao == "0":
             print("💾 Encerrando...")
