@@ -1,6 +1,31 @@
 # tarefas.py
 import services
 from datetime import datetime
+import json
+import os
+ARQUIVO2_JSON = "tarefas.json"
+pasta_data = "data"
+caminho = os.path.join(pasta_data, ARQUIVO2_JSON)
+
+
+# Função: carregar usuários do arquivo JSON
+def carregar_usuarios():
+    if os.path.exists(caminho):
+        with open(caminho, "r", encoding="utf-8") as arquivo:
+            try:
+                dados = json.load(arquivo)
+                if isinstance(dados, list):
+                    return dados
+            except json.JSONDecodeError:
+                pass
+    return []
+
+
+# Função: salvar usuários no arquivo JSON
+def salvar_usuarios(lista):
+    with open(caminho, "w", encoding="utf-8") as arquivo:
+        json.dump(lista, arquivo, ensure_ascii=False, indent=4)
+
 
 def validar_data(data_str):
     try:
@@ -17,6 +42,7 @@ def input_data(prompt):
         print("❌ Data inválida. Use o formato YYYY-MM-DD.")
 
 def gerenciador_tarefas():
+    lista = carregar_usuarios()
     while True:
         print("\n=== GERENCIADOR DE TAREFAS ===")
         print("[1] Inserir")
@@ -33,7 +59,7 @@ def gerenciador_tarefas():
             continue
 
         if opcao == 1:
-            id= input("ID do projeto: ").strip()
+            id= input("ID: ").strip()
             nome = input("titulo: ").strip()
             descricao = input("status: ").strip()
 
@@ -46,9 +72,8 @@ def gerenciador_tarefas():
                 fim = input_data("Data de fim (YYYY-MM-DD): ")
 
             try:
-                projeto = services.cadastrar_projeto(id, nome, descricao, inicio, fim)
-                print("✅ Tarefa registrada com sucesso!")
-                print(projeto)
+                nova_tarefa = {"id": id, "nome": nome, "status": descricao, "inicio": inicio, "fim": fim}
+                lista.append(nova_tarefa)
             except ValueError as e:
                 print("❌", e)
 
@@ -129,6 +154,9 @@ def gerenciador_tarefas():
                 print("Operação cancelada.")
 
         elif opcao == 0:
+            print(" Salvando e encerrando...")
+            salvar_usuarios(lista)
+            print(" Dados salvos com sucesso! Até logo.")
             break
         else:
             print("❌ Opção inválida. Tente novamente!")
