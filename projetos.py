@@ -1,162 +1,134 @@
-import json
-import os
+# projetos.py
+import services
+from datetime import datetime
 
+def validar_data(data_str):
+    try:
+        datetime.strptime(data_str.strip(), "%Y-%m-%d")
+        return True
+    except ValueError:
+        return False
 
-ARQUIVO_JSON = "projetos.json"
-pasta_data = "data"
-caminho = os.path.join(pasta_data, ARQUIVO_JSON)
-
-
-# Função: carregar projetos do arquivo JSON
-def carregar_usuarios():
-    if os.path.exists(caminho):
-        with open(caminho, "r", encoding="utf-8") as arquivo:
-            try:
-                dados = json.load(arquivo)
-                if isinstance(dados, list):
-                    return dados
-            except json.JSONDecodeError:
-                pass
-    return []
-
-
-# Função: salvar projetos no arquivo JSON
-def salvar_usuarios(lista):
-    with open(caminho, "w", encoding="utf-8") as arquivo:
-        json.dump(lista, arquivo, ensure_ascii=False, indent=4)
+def input_data(prompt):
+    while True:
+        s = input(prompt).strip()
+        if validar_data(s):
+            return s
+        print("❌ Data inválida. Use o formato YYYY-MM-DD.")
 
 def gerenciador_projetos():
-    # Carrega projetos existentes (ou lista vazia)
-    lista = carregar_usuarios()
-
-
-    print("\n=== GERENCIADOR DE PROJETOS ===")
-    print("[1] Inserir")
-    print("[2] Listar")
-    print("[3] Buscar")
-    print("[4] Atualizar id e descrição")
-    print("[5] Remover")
-    print("[6] Remover TODOS")
-    print("[0] Sair")
     while True:
-
+        print("\n=== GERENCIADOR DE PROJETOS ===")
+        print("[1] Inserir")
+        print("[2] Listar")
+        print("[3] Buscar")
+        print("[4] Atualizar")
+        print("[5] Remover")
+        print("[6] Remover TODOS")
+        print("[0] Sair")
         try:
             opcao = int(input("Digite o que deseja fazer: "))
         except ValueError:
             print("❌ Opção inválida, digite um número!")
             continue
 
-        # ---------------------------
-        # 1 Inserir novo projeto
-        # ---------------------------
         if opcao == 1:
-            nome = input("Insira o nome do projeto: ").strip()
-            id = input("Insira o id do projeto: ").strip()
-            descrição = input("Insira a descrição do projeto: ").strip() or "user"
-            inicio = input("Insira o inicio do projeto (YYYY-MM-DD): ").strip()
-            fim = input("Insira o fim do projeto (YYYY-MM-DD): ").strip()
+            id_projeto = input("ID do projeto: ").strip()
+            nome = input("Nome do projeto: ").strip()
+            descricao = input("Descrição: ").strip()
 
-            if not nome:
-                print("❌ O nome não pode ser vazio.")
-                continue
-            if not id:
-                print("❌ O id não pode ser vazio.")
-                continue
-            if any(u["nome"].lower() == nome.lower() for u in lista):
-                print("❌ Este projeto já está cadastrado!")
-                continue
+            inicio = input_data("Data de início (YYYY-MM-DD): ")
+            fim = input_data("Data de fim (YYYY-MM-DD): ")
 
-            novo_usuario = {"nome": nome, "id": id, "descrição": descrição, "inicio": inicio, "fim": fim}
-            lista.append(novo_usuario)
-            print("✅ projeto inserido com sucesso!")
+            # valida fim >= inicio
+            while datetime.strptime(fim, "%Y-%m-%d") < datetime.strptime(inicio, "%Y-%m-%d"):
+                print("❌ Data de fim não pode ser anterior à data de início.")
+                fim = input_data("Data de fim (YYYY-MM-DD): ")
 
-        # ---------------------------
-        # 2️ Listar projetos
-        # ---------------------------
-        elif(opcao==2):
-            if not lista:
-                print("não há projetos")
-                opcao=10
+            try:
+                projeto = services.cadastrar_projeto(id_projeto, nome, descricao, inicio, fim)
+                print("✅ Projeto cadastrado com sucesso!")
+                print(projeto)
+            except ValueError as e:
+                print("❌", e)
+
+        elif opcao == 2:
+            projetos = services.listar_projetos()
+            if not projetos:
+                print("Não há projetos cadastrados.")
             else:
-                for a in lista:
-                    print(a)
-            opcao=10
+                print("\n--- Lista de Projetos ---")
+                for p in projetos:
+                    print(f"Nome: {p['nome']} | ID: {p['id']} | Descrição: {p['descricao']} | Início: {p['inicio']} | Fim: {p['fim']}")
+                print("-------------------------")
 
-        # ---------------------------
-        # 3️ Buscar projeto por nome (parcial)
-        # ---------------------------
         elif opcao == 3:
             busca = input("Digite parte do nome para buscar: ").strip().lower()
-            encontrados = [u for u in lista if busca in u["nome"].lower()]
+            encontrados = [p for p in services.listar_projetos() if busca in p["nome"].lower()]
             if encontrados:
-                print("✅ projetos encontrados:")
-                for u in encontrados:
-                    print(f"- {u['nome']} ({u['id']}) - descrição: {u['descrição']}")
+                print("✅ Projetos encontrados:")
+                for p in encontrados:
+                    print(f"- {p['nome']} | ID: {p['id']} | Descrição: {p['descricao']}")
             else:
                 print("❌ Nenhum projeto encontrado!")
 
-        # ---------------------------
-        # 4️ Atualizar id e descrição
-        # ---------------------------
         elif opcao == 4:
-            busca = input("Digite o nome exato do projeto que deseja alterar: ").strip()
-            encontrado = False
-            for usuario in lista:
-                if usuario["nome"].lower() == busca.lower():
-                    print("projeto atual:", usuario)
-                    novo_id = input("Novo id (vazio para manter): ").strip()
-                    novo_descrição = input("Novo descrição (vazio para manter): ").strip()
+            nome_busca = input("Digite o nome exato do projeto para atualizar: ").strip()
+            projeto = next((p for p in services.listar_projetos() if p["nome"].lower() == nome_busca.lower()), None)
+            if not projeto:
+                print("❌ Projeto não encontrado!")
+                continue
 
-                    if novo_id and any(u["id"].lower() == novo_id.lower() and u != usuario for u in lista):
-                        print("❌ Este id já está em uso!")
-                        break
+            print("Projeto atual:", projeto)
+            novo_nome = input("Novo nome (vazio para manter): ").strip() or None
+            nova_desc = input("Nova descrição (vazio para manter): ").strip() or None
 
-                    if novo_id:
-                        usuario["id"] = novo_id
-                    if novo_descrição:
-                        usuario["descrição"] = novo_descrição
-
-                    print("Dados atualizados com sucesso!")
-                    encontrado = True
-                    break
-            if not encontrado:
-                print("projeto não encontrado!")
-
-        # ---------------------------
-        # 5️ Remover um projeto
-        # ---------------------------
-        elif opcao == 5:
-            remov = input("Digite o nome do projeto que deseja excluir: ").strip()
-            for i, novo_usuario in enumerate(lista):
-                if novo_usuario["nome"].lower() == remov.lower():
-                    print(" projeto removido:", novo_usuario)
-                    lista.pop(i)
-                    break
+            novo_inicio = input("Nova data de início (YYYY-MM-DD) ou vazio para manter: ").strip()
+            if novo_inicio:
+                while not validar_data(novo_inicio):
+                    print("❌ Data inválida.")
+                    novo_inicio = input("Nova data de início (YYYY-MM-DD) ou vazio para manter: ").strip()
             else:
-                print("projeto não encontrado!")
+                novo_inicio = None
 
-        # ---------------------------
-        # 6️ Remover todos os projetos
-        # ---------------------------
+            novo_fim = input("Nova data de fim (YYYY-MM-DD) ou vazio para manter: ").strip()
+            if novo_fim:
+                while not validar_data(novo_fim):
+                    print("❌ Data inválida.")
+                    novo_fim = input("Nova data de fim (YYYY-MM-DD) ou vazio para manter: ").strip()
+            else:
+                novo_fim = None
+
+            # checar relação entre datas se ambas fornecidas
+            data_inicio_final = novo_inicio or projeto["inicio"]
+            data_fim_final = novo_fim or projeto["fim"]
+            if datetime.strptime(data_fim_final, "%Y-%m-%d") < datetime.strptime(data_inicio_final, "%Y-%m-%d"):
+                print("❌ Data final não pode ser anterior à data de início. Operação cancelada.")
+                continue
+
+            try:
+                atualizado = services.atualizar_projeto(nome_busca, novo_nome, nova_desc, novo_inicio, novo_fim)
+                print("✅ Projeto atualizado:", atualizado)
+            except ValueError as e:
+                print("❌", e)
+
+        elif opcao == 5:
+            nome_remover = input("Digite o nome do projeto a remover: ").strip()
+            removido = services.remover_projeto(nome_remover)
+            if removido:
+                print("✅ Projeto removido:", removido)
+            else:
+                print("❌ Projeto não encontrado!")
+
         elif opcao == 6:
-            confirma = input("Tem certeza que deseja remover TODOS os projetos? (s/n): ").lower()
+            confirma = input("Tem certeza que deseja remover TODOS os projetos? (s/n): ").strip().lower()
             if confirma == "s":
-                lista.clear()
-                print("Todos os projetos foram removidos!")
+                services.remover_todos_projetos()
+                print("✅ Todos os projetos removidos.")
             else:
                 print("Operação cancelada.")
 
-        # ---------------------------
-        # 0️ Sair e salvar
-        # ---------------------------
         elif opcao == 0:
-            print("💾 Salvando e encerrando...")
-            salvar_usuarios(lista)
-            print("✅ Dados salvos com sucesso! Até logo.")
             break
-
-        # ---------------------------
-        # Opção inválida
-        # ---------------------------
         else:
-            print("Opção inválida, tente novamente!")
+            print("❌ Opção inválida. Tente novamente!")

@@ -1,5 +1,6 @@
 import json
 import os
+import services
 
 
 ARQUIVO_JSON = "usuarios.json"

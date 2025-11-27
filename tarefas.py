@@ -1,157 +1,134 @@
-import json
-import os
+# tarefas.py
+import services
+from datetime import datetime
 
+def validar_data(data_str):
+    try:
+        datetime.strptime(data_str.strip(), "%Y-%m-%d")
+        return True
+    except ValueError:
+        return False
 
-ARQUIVO_JSON = "tarefas.json"
-pasta_data = "data"
-caminho = os.path.join(pasta_data, ARQUIVO_JSON)
-
-
-# Função: carregar usuários do arquivo JSON
-def carregar_tarefas():
-    if os.path.exists(caminho):
-        with open(caminho, "r", encoding="utf-8") as arquivo:
-            try:
-                dados = json.load(arquivo)
-                if isinstance(dados, list):
-                    return dados
-            except json.JSONDecodeError:
-                pass
-    return []
-
-
-# Função: salvar usuários no arquivo JSON
-def salvar_tarefas(lista):
-    with open(caminho, "w", encoding="utf-8") as arquivo:
-        json.dump(lista, arquivo, ensure_ascii=False, indent=4)
+def input_data(prompt):
+    while True:
+        s = input(prompt).strip()
+        if validar_data(s):
+            return s
+        print("❌ Data inválida. Use o formato YYYY-MM-DD.")
 
 def gerenciador_tarefas():
-    lista = carregar_tarefas()
-    
-    print("\n=== GERENCIADOR DE TAREFAS ===")
-    print("[1] Inserir")
-    print("[2] Listar")
-    print("[3] Atualizar")
-    print("[4] Remover")
-    print("[5] Remover TODOS")
-    print("[0] Sair")
     while True:
-
+        print("\n=== GERENCIADOR DE TAREFAS ===")
+        print("[1] Inserir")
+        print("[2] Listar")
+        print("[3] Buscar")
+        print("[4] Atualizar")
+        print("[5] Remover")
+        print("[6] Remover TODOS")
+        print("[0] Sair")
         try:
             opcao = int(input("Digite o que deseja fazer: "))
         except ValueError:
             print("❌ Opção inválida, digite um número!")
             continue
 
-        # ---------------------------
-        # 1 Inserir novo usuário
-        # ---------------------------
         if opcao == 1:
-            titulo = input("Insira o titulo: ").strip()
-            responsavel = input("Insira o responsável: ").strip()
-            status = input("Insira o status(pendente, andamento, concluída): ").strip() or "user"
-            inicio = input("Insira o inicio da tarefa (YYYY-MM-DD): ").strip()
-            fim = input("Insira o fim da tarefa (YYYY-MM-DD): ").strip()
+            id= input("ID do projeto: ").strip()
+            nome = input("titulo: ").strip()
+            descricao = input("status: ").strip()
 
+            inicio = input_data("Data de início (YYYY-MM-DD): ")
+            fim = input_data("Data de fim (YYYY-MM-DD): ")
 
-            if not titulo:
-                print("❌ O título não pode ser vazio.")
-                continue
-            if not responsavel:
-                print("❌ O responsável não pode ser vazio.")
-                continue
+            # valida fim >= inicio
+            while datetime.strptime(fim, "%Y-%m-%d") < datetime.strptime(inicio, "%Y-%m-%d"):
+                print("❌ Data de fim não pode ser anterior à data de início.")
+                fim = input_data("Data de fim (YYYY-MM-DD): ")
 
-            novo_usuario = {"título": titulo, "responsável": responsavel, "status": status, "data de início": inicio, "data de entrega": fim }
-            lista.append(novo_usuario)
-            print("✅ Tarefa registrada com sucesso!")
+            try:
+                projeto = services.cadastrar_projeto(Id_tarefa, nome, descricao, inicio, fim)
+                print("✅ Tarefa registrada com sucesso!")
+                print(projeto)
+            except ValueError as e:
+                print("❌", e)
 
-        # ---------------------------
-        # 2 Listar usuários
-        # ---------------------------
-        elif(opcao==2):
-            if not lista:
-                print("não há tarefas")
-                opcao=10
+        elif opcao == 2:
+            projetos = services.listar_projetos()
+            if not projetos:
+                print("Não há tarefas cadastradas.")
             else:
-                for a in lista:
-                    print(a)
-            opcao=10
+                print("\n--- Lista de Tarefas ---")
+                for p in projetos:
+                    print(f"titulo: {p['nome']} | ID: {p['id']} | status: {p['descricao']} | Início: {p['inicio']} | Fim: {p['fim']}")
+                print("-------------------------")
 
-        # ---------------------------
-        # 3 Buscar usuário por nome (parcial)
-        # ---------------------------
         elif opcao == 3:
             busca = input("Digite parte do nome para buscar: ").strip().lower()
-            encontrados = [u for u in lista if busca in u["nome"].lower()]
+            encontrados = [p for p in services.listar_projetos() if busca in p["nome"].lower()]
             if encontrados:
-                print("✅ Usuários encontrados:")
-                for u in encontrados:
-                    print(f"- {u['nome']} ({u['email']}) - Perfil: {u['perfil']}")
+                print("✅ Tarefa encontrada:")
+                for p in encontrados:
+                    print(f"- {p['nome']} | ID: {p['id']} | status: {p['descricao']}")
             else:
-                print("❌ Nenhum usuário encontrado!")
+                print("❌ Nenhum projeto encontrado!")
 
-        # ---------------------------
-        # 4 Atualizar email e perfil
-        # ---------------------------
         elif opcao == 4:
-            busca = input("Digite o nome exato do usuário que deseja alterar: ").strip()
-            encontrado = False
-            for usuario in lista:
-                if usuario["nome"].lower() == busca.lower():
-                    print("Usuário atual:", usuario)
-                    novo_email = input("Novo email (vazio para manter): ").strip()
-                    novo_perfil = input("Novo perfil (vazio para manter): ").strip()
+            nome_busca = input("Digite o nome exato da tarefa para atualizar: ").strip()
+            projeto = next((p for p in services.listar_projetos() if p["nome"].lower() == nome_busca.lower()), None)
+            if not projeto:
+                print("❌ tarefa não encontrado!")
+                continue
 
-                    if novo_email and any(u["email"].lower() == novo_email.lower() and u != usuario for u in lista):
-                        print("❌ Este email já está em uso!")
-                        break
+            print("tarefa atual:", projeto)
+            novo_nome = input("Novo titulo (vazio para manter): ").strip() or None
+            nova_desc = input("Novo status (vazio para manter): ").strip() or None
 
-                    if novo_email:
-                        usuario["email"] = novo_email
-                    if novo_perfil:
-                        usuario["perfil"] = novo_perfil
-
-                    print("Dados atualizados com sucesso!")
-                    encontrado = True
-                    break
-            if not encontrado:
-                print("Usuário não encontrado!")
-
-        # ---------------------------
-        # 5 Remover um usuário
-        # ---------------------------
-        elif opcao == 5:
-            remov = input("Digite o nome do usuário que deseja excluir: ").strip()
-            for i, novo_usuario in enumerate(lista):
-                if novo_usuario["nome"].lower() == remov.lower():
-                    print(" Usuário removido:", novo_usuario)
-                    lista.pop(i)
-                    break
+            novo_inicio = input("Nova data de início (YYYY-MM-DD) ou vazio para manter: ").strip()
+            if novo_inicio:
+                while not validar_data(novo_inicio):
+                    print("❌ Data inválida.")
+                    novo_inicio = input("Nova data de início (YYYY-MM-DD) ou vazio para manter: ").strip()
             else:
-                print("Usuário não encontrado!")
+                novo_inicio = None
 
-        # ---------------------------
-        # 6 Remover todos os usuários
-        # ---------------------------
+            novo_fim = input("Nova data de fim (YYYY-MM-DD) ou vazio para manter: ").strip()
+            if novo_fim:
+                while not validar_data(novo_fim):
+                    print("❌ Data inválida.")
+                    novo_fim = input("Nova data de fim (YYYY-MM-DD) ou vazio para manter: ").strip()
+            else:
+                novo_fim = None
+
+            # checar relação entre datas se ambas fornecidas
+            data_inicio_final = novo_inicio or projeto["inicio"]
+            data_fim_final = novo_fim or projeto["fim"]
+            if datetime.strptime(data_fim_final, "%Y-%m-%d") < datetime.strptime(data_inicio_final, "%Y-%m-%d"):
+                print("❌ Data final não pode ser anterior à data de início. Operação cancelada.")
+                continue
+
+            try:
+                atualizado = services.atualizar_projeto(nome_busca, novo_nome, nova_desc, novo_inicio, novo_fim)
+                print("✅ Projeto atualizado:", atualizado)
+            except ValueError as e:
+                print("❌", e)
+
+        elif opcao == 5:
+            nome_remover = input("Digite o nome do projeto a remover: ").strip()
+            removido = services.remover_projeto(nome_remover)
+            if removido:
+                print("✅ Tarefa removida:", removido)
+            else:
+                print("❌ Tarefa não encontrada!")
+
         elif opcao == 6:
-            confirma = input("Tem certeza que deseja remover TODOS os usuários? (s/n): ").lower()
+            confirma = input("Tem certeza que deseja remover TODAS as tarefas? (s/n): ").strip().lower()
             if confirma == "s":
-                lista.clear()
-                print("Todos os usuários foram removidos!")
+                services.remover_todos_projetos()
+                print("✅ Todos as tarefas removidas.")
             else:
                 print("Operação cancelada.")
 
-        # ---------------------------
-        # 0 Sair e salvar
-        # ---------------------------
         elif opcao == 0:
-            print(" Salvando e encerrando...")
-            salvar_tarefas(lista)
-            print(" Dados salvos com sucesso! Até logo.")
             break
-
-        # ---------------------------
-        # Opção inválida
-        # ---------------------------
         else:
-            print("Opção inválida, tente novamente!")
+            print("❌ Opção inválida. Tente novamente!")

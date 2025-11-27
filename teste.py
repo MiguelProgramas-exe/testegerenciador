@@ -1,4 +1,4 @@
-import gerenciador.services as services
+import services 
 
 # Cadastrar usuário
 u1 = services.cadastrar_usuario("u_001", "Ariadne", "ariadne@ifsp.edu.br", "admin")
