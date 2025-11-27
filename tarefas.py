@@ -46,7 +46,7 @@ def gerenciador_tarefas():
                 fim = input_data("Data de fim (YYYY-MM-DD): ")
 
             try:
-                projeto = services.cadastrar_projeto(Id_tarefa, nome, descricao, inicio, fim)
+                projeto = services.cadastrar_projeto(id, nome, descricao, inicio, fim)
                 print("✅ Tarefa registrada com sucesso!")
                 print(projeto)
             except ValueError as e:
